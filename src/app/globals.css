@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FCF9F2;
-  --foreground: #1F2937;
-  --primary: #C5A059;
+  --background: #FCFBF9; /* Soft cream/ivory */
+  --foreground: #2A2826; /* Soft charcoal */
+  --primary: #4A154B; /* Deep purple from the logo */
   --primary-foreground: #FFFFFF;
+  --secondary: #E8E5E1; /* Soft taupe/beige */
+  --secondary-foreground: #2A2826;
+  --accent: #231C4D; /* Deep blue from the logo */
+  --accent-foreground: #FFFFFF;
   --card: #FFFFFF;
-  --card-foreground: #1F2937;
-  --border: #E5E7EB;
+  --card-foreground: #2A2826;
+  --border: #E8E5E1;
 }
 
 @theme inline {
@@ -15,15 +19,25 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-border: var(--border);
   
-  --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
 }
