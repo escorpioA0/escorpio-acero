@@ -35,10 +35,8 @@ export default function Navbar() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex flex-1 items-center justify-center gap-8">
-            <Link href="/#coleccion" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Novedades</Link>
-            <Link href="/#cadenas" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Cadenas</Link>
-            <Link href="/#anillos" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Anillos</Link>
-            <Link href="/#pulseras" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Pulseras</Link>
+            <Link href="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Inicio</Link>
+            <Link href="/#coleccion" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Catálogo</Link>
           </div>
 
           {/* Icons */}

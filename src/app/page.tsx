@@ -10,8 +10,7 @@ async function getProducts() {
     .from("products")
     .select(`*, categories (name)`)
     .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(4);
+    .order("created_at", { ascending: false });
     
   if (error) {
     console.error("Error fetching products:", error);
@@ -35,7 +34,7 @@ export default async function Home() {
           <div className="flex flex-col items-center text-center mb-16">
             <span className="text-sm uppercase tracking-widest text-foreground/50 mb-2">Descubre</span>
             <h2 className="font-serif text-3xl font-bold text-foreground md:text-4xl">
-              Nuestros Favoritos
+              Nuestra Colección
             </h2>
             <div className="mt-4 h-0.5 w-16 bg-primary opacity-50"></div>
           </div>
@@ -55,12 +54,6 @@ export default async function Home() {
                 />
               ))
             )}
-          </div>
-          
-          <div className="mt-16 flex justify-center">
-            <button className="border border-foreground px-8 py-3 text-sm font-medium text-foreground transition-all hover:bg-foreground hover:text-white">
-              Ver Todo el Catálogo
-            </button>
           </div>
         </section>
       </main>
