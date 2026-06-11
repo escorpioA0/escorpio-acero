@@ -1,7 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/admin/login");
+    router.refresh();
+  };
+
   return (
     <div className="flex min-h-screen bg-zinc-50">
       {/* Sidebar */}
@@ -10,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h2 className="font-serif text-xl font-bold text-primary">Escorpio Admin</h2>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Link href="/admin/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-100 text-zinc-700 hover:text-primary transition-colors">
+          <Link href="/admin/dashboard" className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${pathname === '/admin/dashboard' ? 'bg-zinc-100 text-primary' : 'text-zinc-700 hover:bg-zinc-100 hover:text-primary'}`}>
             <LayoutDashboard size={18} /> Dashboard
           </Link>
           <Link href="/admin/productos" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-100 text-zinc-700 hover:text-primary transition-colors">
@@ -24,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </nav>
         <div className="p-4 border-t border-zinc-200">
-          <button className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-red-50 text-red-600 transition-colors">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-red-50 text-red-600 transition-colors">
             <LogOut size={18} /> Cerrar Sesión
           </button>
         </div>
