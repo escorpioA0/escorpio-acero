@@ -148,9 +148,10 @@ export default function PedidosClient() {
                       <td className="px-6 py-4">
                         <div className="max-w-[200px]">
                           <p className="font-medium text-zinc-900 truncate" title={order.shipping_address}>
-                            {order.shipping_address}
+                            {order.customer_name ? `${order.customer_name} - ` : ''}{order.shipping_address}
                           </p>
                           <p className="text-xs mt-0.5">{order.shipping_method}</p>
+                          {order.customer_phone && <p className="text-xs mt-0.5 text-zinc-500">Tel: {order.customer_phone}</p>}
                         </div>
                       </td>
                       <td className="px-6 py-4">

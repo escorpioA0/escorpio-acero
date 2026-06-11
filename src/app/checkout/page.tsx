@@ -69,6 +69,9 @@ export default function CheckoutPage() {
           shipping_address: direccionCompleta,
           shipping_method: metodoEnvioTexto,
           shipping_cost: shippingCost,
+          customer_name: formData.nombre,
+          customer_phone: formData.telefono,
+          customer_email: formData.email,
           status: 'pendiente'
         }])
         .select()
