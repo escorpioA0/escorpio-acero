@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/lib/supabase-browser";
+import { createClient } from "@/lib/supabase-browser";
 import { UploadCloud, X, Save, Plus, Trash2 } from "lucide-react";
 
 export default function ConfiguracionClient() {
+  const supabase = createClient();
   const [settings, setSettings] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [newCatName, setNewCatName] = useState("");

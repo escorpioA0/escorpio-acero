@@ -5,9 +5,10 @@ import { ShoppingCart, Menu, Search, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import CartDrawer from "./CartDrawer";
-import { supabase } from "@/lib/supabase-browser";
+import { createClient } from "@/lib/supabase-browser";
 
 export default function Navbar() {
+  const supabase = createClient();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const cartCount = useCartStore((state) => state.getCartCount());

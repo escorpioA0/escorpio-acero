@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase-browser";
+import { createClient } from "@/lib/supabase-browser";
 import { PackageOpen, Clock, Truck, CheckCircle, Search } from "lucide-react";
 
 export default function PedidosClient() {
+  const supabase = createClient();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
