@@ -5,15 +5,31 @@ import { ShoppingCart, Menu, Search, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import CartDrawer from "./CartDrawer";
+import { supabase } from "@/lib/supabase-browser";
 
 export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const cartCount = useCartStore((state) => state.getCartCount());
+  const [storeName, setStoreName] = useState("ESCORPIO ACERO");
+  const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
     setMounted(true);
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data } = await supabase.from("store_settings").select("store_name, logo_url").limit(1).single();
+      if (data) {
+        if (data.store_name) setStoreName(data.store_name.toUpperCase());
+        if (data.logo_url) setLogoUrl(data.logo_url);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <>
@@ -27,8 +43,11 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-1 md:flex-none flex justify-center md:justify-start">
             <Link href="/" className="flex items-center gap-2">
+              {logoUrl && (
+                <img src={logoUrl} alt={storeName} className="h-8 w-auto object-contain" />
+              )}
               <span className="font-serif text-2xl font-bold tracking-tight text-primary">
-                ESCORPIO ACERO
+                {storeName}
               </span>
             </Link>
           </div>

@@ -4,20 +4,32 @@ import { useCartStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, Truck, Store, MapPin } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-browser"; // use browser client
+import { createClient } from "@/lib/supabase-browser";
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { items, getCartTotal, clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  // Formulario
+  const [formData, setFormData] = useState({
+    nombre: "",
+    telefono: "",
+    email: "",
+    direccion: "",
+    ciudad: "",
+    cp: ""
+  });
 
   // Opciones de envío
   const [shippingMethod, setShippingMethod] = useState<"local" | "cercana" | "lejos">("local");
   
-  // Costos de envío (se pueden guardar en Supabase después)
+  // Costos de envío
   const COSTO_PROVINCIA_CERCANA = 2500;
   const COSTO_OTRAS_PROVINCIAS = 5000;
-  const MONTO_ENVIO_GRATIS_CERCANA = 30000; // Envío gratis superando este monto
+  const MONTO_ENVIO_GRATIS_CERCANA = 30000; 
 
   useEffect(() => {
     setMounted(true);
@@ -36,17 +48,94 @@ export default function CheckoutPage() {
 
   const total = subtotal + shippingCost;
 
-  const handleSimulatePayment = () => {
-    // Simulamos la redirección a MercadoPago
-    alert("Redirigiendo a MercadoPago (Simulado)...");
-    
-    // Al finalizar el pago, limpiamos el carrito y mandamos a una página de éxito
-    clearCart();
-    router.push("/");
-    setTimeout(() => {
-      alert("¡Pago exitoso! Gracias por tu compra.");
-    }, 500);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({...formData, [e.target.name]: e.target.value});
   };
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+      
+      // 1. Crear el pedido en la base de datos (Requiere políticas RLS públicas o rol admin)
+      let direccionCompleta = shippingMethod === "local" ? "Retiro en local" : `${formData.direccion}, ${formData.ciudad} (${formData.cp})`;
+      let metodoEnvioTexto = shippingMethod === "local" ? "Retiro" : shippingMethod === "cercana" ? "Envío Provincia Cercana" : "Envío Resto del País";
+
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert([{
+          total_amount: total,
+          shipping_address: direccionCompleta,
+          shipping_method: metodoEnvioTexto,
+          shipping_cost: shippingCost,
+          status: 'pendiente'
+        }])
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Insertar los items
+      const orderItems = items.map(item => ({
+        order_id: orderData.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // 3. Generar mensaje de WhatsApp
+      let mensaje = `*¡Hola! Quiero hacer un pedido:*%0A%0A`;
+      mensaje += `*ID Pedido:* ${orderData.id.split('-')[0]}%0A`;
+      mensaje += `*Nombre:* ${formData.nombre}%0A`;
+      if (formData.email) mensaje += `*Email:* ${formData.email}%0A`;
+      mensaje += `*Envío:* ${metodoEnvioTexto} (${direccionCompleta})%0A%0A`;
+      
+      mensaje += `*Productos:*%0A`;
+      items.forEach(item => {
+        mensaje += `- ${item.quantity}x ${item.name} ($${item.price * item.quantity})%0A`;
+      });
+
+      mensaje += `%0A*Subtotal:* $${subtotal}%0A`;
+      mensaje += `*Costo de Envío:* $${shippingCost}%0A`;
+      mensaje += `*TOTAL A PAGAR:* $${total}%0A%0A`;
+      mensaje += `Por favor, indícame cómo realizar el pago. ¡Gracias!`;
+
+      // 4. Redirigir a WhatsApp (reemplazar con el nro del dueño real)
+      const numeroVendedor = "5491100000000"; // Se recomienda guardarlo en Settings luego
+      
+      clearCart();
+      setSuccess(true);
+      
+      window.open(`https://wa.me/${numeroVendedor}?text=${mensaje}`, "_blank");
+
+    } catch (error: any) {
+      console.error("Error en checkout:", error);
+      alert("Hubo un error al procesar tu pedido. Por favor intenta de nuevo. Error: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 text-2xl">✓</div>
+        <h1 className="text-3xl font-serif font-bold text-zinc-900 mb-2">¡Pedido Registrado!</h1>
+        <p className="text-zinc-600 mb-8 max-w-md">Tu pedido ha sido guardado. Si no se abrió WhatsApp automáticamente, comunícate con nosotros para coordinar el pago.</p>
+        <Link href="/" className="bg-primary text-white px-8 py-3 rounded-md hover:bg-primary/90 transition-colors">
+          Volver a la tienda
+        </Link>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -61,7 +150,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 pb-20">
-      {/* Header simple */}
       <header className="bg-white border-b border-zinc-200 py-4 px-6 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto flex items-center">
           <Link href="/" className="flex items-center text-zinc-500 hover:text-zinc-900 transition-colors text-sm font-medium">
@@ -75,16 +163,25 @@ export default function CheckoutPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <form onSubmit={handleCheckout} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Columna Izquierda - Formulario y Envío */}
           <div className="lg:col-span-7 space-y-8">
             <section className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
-              <h2 className="text-xl font-serif font-bold text-zinc-900 mb-6">Información de Contacto</h2>
+              <h2 className="text-xl font-serif font-bold text-zinc-900 mb-6">Tus Datos</h2>
               <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre Completo *</label>
+                    <input required name="nombre" value={formData.nombre} onChange={handleChange} type="text" className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:border-primary focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1">Teléfono / WhatsApp *</label>
+                    <input required name="telefono" value={formData.telefono} onChange={handleChange} type="text" className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:border-primary focus:outline-none" />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-zinc-700 mb-1">Correo electrónico</label>
-                  <input type="email" placeholder="ejemplo@correo.com" className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:border-primary focus:outline-none" />
+                  <input name="email" value={formData.email} onChange={handleChange} type="email" placeholder="ejemplo@correo.com" className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:border-primary focus:outline-none" />
                 </div>
               </div>
             </section>
@@ -96,38 +193,23 @@ export default function CheckoutPage() {
               </h2>
               
               <div className="space-y-3">
-                {/* Opcion 1: Retiro Local */}
                 <label className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "local" ? "border-primary bg-primary/5" : "border-zinc-200 hover:border-zinc-300"}`}>
-                  <input 
-                    type="radio" 
-                    name="shipping" 
-                    className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4"
-                    checked={shippingMethod === "local"}
-                    onChange={() => setShippingMethod("local")}
-                  />
+                  <input type="radio" name="shipping" className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4" checked={shippingMethod === "local"} onChange={() => setShippingMethod("local")} />
                   <div className="flex-1">
                     <span className="block font-medium text-zinc-900 flex items-center gap-2">
                       <Store size={16} /> Retiro en Local
                     </span>
-                    <span className="block text-sm text-zinc-500 mt-1">Av. Falsa 123, CABA. Lunes a Viernes de 10 a 18hs.</span>
+                    <span className="block text-sm text-zinc-500 mt-1">Acordar punto de encuentro.</span>
                   </div>
                   <span className="font-bold text-green-600">Gratis</span>
                 </label>
 
-                {/* Opcion 2: Provincia Cercana */}
                 <label className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "cercana" ? "border-primary bg-primary/5" : "border-zinc-200 hover:border-zinc-300"}`}>
-                  <input 
-                    type="radio" 
-                    name="shipping" 
-                    className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4"
-                    checked={shippingMethod === "cercana"}
-                    onChange={() => setShippingMethod("cercana")}
-                  />
+                  <input type="radio" name="shipping" className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4" checked={shippingMethod === "cercana"} onChange={() => setShippingMethod("cercana")} />
                   <div className="flex-1">
                     <span className="block font-medium text-zinc-900 flex items-center gap-2">
                       <MapPin size={16} /> Provincias Cercanas
                     </span>
-                    <span className="block text-sm text-zinc-500 mt-1">Bs. As, Santa Fe, Córdoba.</span>
                     {subtotal < MONTO_ENVIO_GRATIS_CERCANA && (
                       <span className="block text-xs text-primary mt-1 font-medium">¡Suma ${MONTO_ENVIO_GRATIS_CERCANA - subtotal} más para envío gratis!</span>
                     )}
@@ -137,20 +219,12 @@ export default function CheckoutPage() {
                   </span>
                 </label>
 
-                {/* Opcion 3: Otras Provincias */}
                 <label className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "lejos" ? "border-primary bg-primary/5" : "border-zinc-200 hover:border-zinc-300"}`}>
-                  <input 
-                    type="radio" 
-                    name="shipping" 
-                    className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4"
-                    checked={shippingMethod === "lejos"}
-                    onChange={() => setShippingMethod("lejos")}
-                  />
+                  <input type="radio" name="shipping" className="mt-1 mr-3 text-primary focus:ring-primary h-4 w-4" checked={shippingMethod === "lejos"} onChange={() => setShippingMethod("lejos")} />
                   <div className="flex-1">
                     <span className="block font-medium text-zinc-900 flex items-center gap-2">
                       <Truck size={16} /> Resto del País
                     </span>
-                    <span className="block text-sm text-zinc-500 mt-1">Envío a domicilio mediante correo.</span>
                   </div>
                   <span className="font-bold text-zinc-900">${COSTO_OTRAS_PROVINCIAS}</span>
                 </label>
@@ -160,18 +234,15 @@ export default function CheckoutPage() {
                 <div className="mt-6 space-y-4 pt-6 border-t border-zinc-100">
                   <h3 className="font-medium text-zinc-900">Dirección de Envío</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <input type="text" placeholder="Nombre" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-                    <input type="text" placeholder="Apellido" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-                    <input type="text" placeholder="Calle y Número" className="col-span-2 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-                    <input type="text" placeholder="Ciudad" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-                    <input type="text" placeholder="Código Postal" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                    <input required name="direccion" value={formData.direccion} onChange={handleChange} type="text" placeholder="Calle y Número *" className="col-span-2 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                    <input required name="ciudad" value={formData.ciudad} onChange={handleChange} type="text" placeholder="Ciudad / Provincia *" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                    <input required name="cp" value={formData.cp} onChange={handleChange} type="text" placeholder="Código Postal *" className="col-span-1 border border-zinc-300 rounded-md px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                   </div>
                 </div>
               )}
             </section>
           </div>
 
-          {/* Columna Derecha - Resumen de Compra */}
           <div className="lg:col-span-5">
             <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm sticky top-24">
               <h2 className="text-xl font-serif font-bold text-zinc-900 mb-6">Resumen de tu pedido</h2>
@@ -209,18 +280,19 @@ export default function CheckoutPage() {
               </div>
 
               <button 
-                onClick={handleSimulatePayment}
-                className="w-full mt-8 bg-blue-500 text-white py-4 rounded-lg font-bold hover:bg-blue-600 transition-colors flex justify-center items-center gap-2"
+                type="submit"
+                disabled={loading}
+                className="w-full mt-8 bg-green-500 text-white py-4 rounded-lg font-bold hover:bg-green-600 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
               >
-                Pagar con Mercado Pago
+                {loading ? "Procesando..." : "Enviar Pedido por WhatsApp"}
               </button>
               <p className="text-center text-xs text-zinc-500 mt-3 flex items-center justify-center gap-1">
-                🔒 Pagos seguros verificados
+                Te contactaremos para coordinar el pago.
               </p>
             </div>
           </div>
 
-        </div>
+        </form>
       </main>
     </div>
   );
