@@ -63,10 +63,9 @@ export default async function RootLayout({
   
   let customStyle = "";
   if (settings && settings.primary_color) {
-    const hslPrimary = hexToHSL(settings.primary_color);
     customStyle = `
       :root {
-        --primary: ${hslPrimary};
+        --primary: ${settings.primary_color};
       }
     `;
   }

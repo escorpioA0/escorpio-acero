@@ -17,7 +17,18 @@ export default async function ProductoPage({ params }: ProductoPageProps) {
     .eq("id", params.id)
     .single();
 
-  if (error || !product) {
+  if (error) {
+    return (
+      <div className="p-20 text-center">
+        <h1 className="text-2xl text-red-500 mb-4">Error cargando producto</h1>
+        <p className="text-zinc-600 bg-zinc-100 p-4 rounded-md inline-block text-left font-mono text-sm max-w-2xl overflow-auto">
+          {JSON.stringify(error, null, 2)}
+        </p>
+      </div>
+    );
+  }
+
+  if (!product) {
     notFound();
   }
 

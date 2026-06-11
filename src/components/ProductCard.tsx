@@ -36,8 +36,12 @@ export default function ProductCard({ id, name, price, category, imageUrl }: Pro
         
         {/* Botón rápido de agregar */}
         <button 
-          onClick={handleAddToCart}
-          className="absolute bottom-4 right-4 flex h-10 w-10 translate-y-12 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-all duration-300 hover:bg-primary/90 group-hover:translate-y-0 group-hover:opacity-100 shadow-md"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleAddToCart();
+          }}
+          className="absolute z-10 bottom-4 right-4 flex h-10 w-10 translate-y-12 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 transition-all duration-300 hover:bg-primary/90 group-hover:translate-y-0 group-hover:opacity-100 shadow-md cursor-pointer"
           aria-label="Agregar al carrito"
         >
           <Plus size={20} />
