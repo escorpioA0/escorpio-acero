@@ -3,40 +3,26 @@ import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
 
-// Datos de prueba (hasta que conectemos Supabase para los productos)
-const mockProducts = [
-  {
-    id: "1",
-    name: "Pulsera Estrellas y Luna",
-    price: 15500,
-    category: "Pulseras",
-    imageUrl: "/product_bracelet_1781134047510.png"
-  },
-  {
-    id: "2",
-    name: "Argollas Clásicas Plata",
-    price: 9800,
-    category: "Aros",
-    imageUrl: "/product_ring_1781134056270.png"
-  },
-  {
-    id: "3",
-    name: "Cadena Eslabón Fino",
-    price: 12000,
-    category: "Cadenas",
-    // Usamos la misma imagen generada o una diferente temporalmente
-    imageUrl: "/hero_jewelry_bg_1781134036685.png"
-  },
-  {
-    id: "4",
-    name: "Anillo Ajustable Brillo",
-    price: 8500,
-    category: "Anillos",
-    imageUrl: "/product_ring_1781134056270.png"
-  }
-];
+import { supabase } from "@/lib/supabase";
 
-export default function Home() {
+async function getProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select(`*, categories (name)`)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(4);
+    
+  if (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+  return data || [];
+}
+
+export default async function Home() {
+  const products = await getProducts();
+
   return (
     <div className="flex min-h-screen flex-col bg-background selection:bg-primary/20">
       <Navbar />
@@ -55,16 +41,20 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {mockProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                price={product.price}
-                category={product.category}
-                imageUrl={product.imageUrl}
-              />
-            ))}
+            {products.length === 0 ? (
+              <p className="col-span-full text-center text-zinc-500">No hay productos disponibles por el momento.</p>
+            ) : (
+              products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  category={product.categories?.name || "Sin categoría"}
+                  imageUrl={product.image_url || "/hero_jewelry_bg_1781134036685.png"}
+                />
+              ))
+            )}
           </div>
           
           <div className="mt-16 flex justify-center">
