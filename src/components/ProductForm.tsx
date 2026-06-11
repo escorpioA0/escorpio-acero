@@ -32,14 +32,14 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
   const fetchCategories = async () => {
     const { data } = await supabase.from("categories").select("*").order("name");
     if (data) setCategories(data);
   };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

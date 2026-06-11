@@ -52,7 +52,14 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         {products && products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                id={product.id} 
+                name={product.name} 
+                price={product.price} 
+                category={category.name} 
+                imageUrl={product.image_url || "/placeholder.jpg"} 
+              />
             ))}
           </div>
         ) : (

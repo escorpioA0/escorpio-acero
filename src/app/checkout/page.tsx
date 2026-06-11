@@ -4,7 +4,6 @@ import { useCartStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, Truck, Store, MapPin } from "lucide-react";
-import { supabase } from "@/lib/supabase-browser"; // use browser client
 import { createClient } from "@/lib/supabase-browser";
 
 export default function CheckoutPage() {
