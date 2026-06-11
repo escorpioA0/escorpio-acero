@@ -107,7 +107,7 @@ export default function ProductosClient() {
                       <td className="px-6 py-4">${price}</td>
                       <td className={`px-6 py-4 ${margin > 0 ? 'text-green-600' : 'text-red-600'}`}>{margin}%</td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-blue-600 hover:underline mr-3">Editar</button>
+                        <Link href={`/admin/productos/editar/${product.id}`} className="text-blue-600 hover:underline mr-3">Editar</Link>
                         <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:underline">Eliminar</button>
                       </td>
                     </tr>
