@@ -96,7 +96,11 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     setLoading(true);
 
     try {
-      const slug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      const baseSlug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      // If it's an update, we shouldn't necessarily change the slug unless we want to, but to avoid unique constraint on insert/update:
+      // If initialData exists, we can keep the old slug to not break URLs, or if it's new we generate a unique one.
+      const slug = initialData?.slug || `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
+      
       const productPayload = {
         name: formData.name,
         slug: slug,
