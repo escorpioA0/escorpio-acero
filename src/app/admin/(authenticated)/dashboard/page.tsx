@@ -1,107 +1,82 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, Package, ShoppingCart, TrendingUp } from "lucide-react"
+import { BarChart3, TrendingUp, Users, Package } from "lucide-react";
 
-export default function AdminDashboardPage() {
+export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-serif tracking-tight">Dashboard</h1>
+      <h1 className="text-3xl font-serif font-bold text-zinc-900">Dashboard</h1>
       
-      {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos Totales (Mes)</CardTitle>
-            <DollarSign className="h-4 w-4 text-foreground/50" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$1,250,000</div>
-            <p className="text-xs text-foreground/50">+20.1% respecto al mes anterior</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos Nuevos</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-foreground/50" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+150</div>
-            <p className="text-xs text-foreground/50">+15% respecto al mes anterior</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productos Activos</CardTitle>
-            <Package className="h-4 w-4 text-foreground/50" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">345</div>
-            <p className="text-xs text-foreground/50">21 bajos en stock</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasa de Conversión</CardTitle>
-            <TrendingUp className="h-4 w-4 text-foreground/50" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3.2%</div>
-            <p className="text-xs text-foreground/50">+1.2% respecto al mes anterior</p>
-          </CardContent>
-        </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-sm font-medium text-zinc-500">Ingresos Totales</h3>
+            <span className="p-2 bg-primary/10 text-primary rounded-md"><TrendingUp size={16} /></span>
+          </div>
+          <div className="text-2xl font-bold">$45,231.89</div>
+          <p className="text-xs text-green-600 mt-1">+20.1% este mes</p>
+        </div>
+        
+        <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-sm font-medium text-zinc-500">Pedidos Nuevos</h3>
+            <span className="p-2 bg-primary/10 text-primary rounded-md"><BarChart3 size={16} /></span>
+          </div>
+          <div className="text-2xl font-bold">+235</div>
+          <p className="text-xs text-green-600 mt-1">+15% este mes</p>
+        </div>
+        
+        <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-sm font-medium text-zinc-500">Productos Activos</h3>
+            <span className="p-2 bg-primary/10 text-primary rounded-md"><Package size={16} /></span>
+          </div>
+          <div className="text-2xl font-bold">124</div>
+          <p className="text-xs text-zinc-500 mt-1">4 sin stock</p>
+        </div>
+        
+        <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-sm font-medium text-zinc-500">Clientes</h3>
+            <span className="p-2 bg-primary/10 text-primary rounded-md"><Users size={16} /></span>
+          </div>
+          <div className="text-2xl font-bold">892</div>
+          <p className="text-xs text-green-600 mt-1">+12 nuevos esta semana</p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Gráfico (Mockup) */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Resumen de Ventas (Últimos 7 días)</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px] w-full bg-black/5 rounded-md flex items-end justify-between p-4 gap-2">
-              {/* Barras de mock */}
-              {[40, 60, 45, 80, 50, 90, 75].map((height, i) => (
-                <div key={i} className="w-full bg-primary/80 rounded-t-sm" style={{ height: `${height}%` }} />
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-foreground/50 px-4">
-              <span>Lun</span><span>Mar</span><span>Mie</span><span>Jue</span><span>Vie</span><span>Sab</span><span>Dom</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Últimos Pedidos */}
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Últimos Pedidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {[
-                { id: "1024", name: "María Gómez", email: "maria@example.com", amount: 45000, status: "Pagado" },
-                { id: "1025", name: "Juan Pérez", email: "juan@example.com", amount: 15000, status: "Pendiente" },
-                { id: "1026", name: "Ana Martínez", email: "ana@example.com", amount: 82000, status: "Enviado" },
-                { id: "1027", name: "Lucas López", email: "lucas@example.com", amount: 22000, status: "Pagado" },
-              ].map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">{order.name}</p>
-                    <p className="text-sm text-foreground/50">{order.email}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">${order.amount.toLocaleString("es-AR")}</p>
-                    <div className={`text-xs px-2 py-1 rounded-full mt-1 inline-block
-                      ${order.status === 'Pagado' ? 'bg-green-100 text-green-700' : 
-                        order.status === 'Enviado' ? 'bg-blue-100 text-blue-700' : 
-                        'bg-yellow-100 text-yellow-700'}`}>
-                      {order.status}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Recent Orders Table */}
+      <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-zinc-200">
+          <h2 className="text-lg font-semibold text-zinc-900">Últimos Pedidos</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-zinc-500">
+            <thead className="text-xs text-zinc-700 uppercase bg-zinc-50 border-b border-zinc-200">
+              <tr>
+                <th className="px-6 py-3">Pedido</th>
+                <th className="px-6 py-3">Cliente</th>
+                <th className="px-6 py-3">Estado</th>
+                <th className="px-6 py-3">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Dummy data for now */}
+              <tr className="bg-white border-b border-zinc-100 hover:bg-zinc-50">
+                <td className="px-6 py-4 font-medium text-zinc-900">#ORD-001</td>
+                <td className="px-6 py-4">María López</td>
+                <td className="px-6 py-4"><span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Pendiente</span></td>
+                <td className="px-6 py-4">$12,500.00</td>
+              </tr>
+              <tr className="bg-white border-b border-zinc-100 hover:bg-zinc-50">
+                <td className="px-6 py-4 font-medium text-zinc-900">#ORD-002</td>
+                <td className="px-6 py-4">Juan Pérez</td>
+                <td className="px-6 py-4"><span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Enviado</span></td>
+                <td className="px-6 py-4">$4,200.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  )
+  );
 }
