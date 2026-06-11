@@ -13,18 +13,27 @@ export default function Navbar() {
   const cartCount = useCartStore((state) => state.getCartCount());
   const [storeName, setStoreName] = useState("ESCORPIO ACERO");
   const [logoUrl, setLogoUrl] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
-    fetchSettings();
+    fetchData();
   }, []);
 
-  const fetchSettings = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await supabase.from("store_settings").select("store_name, logo_url").limit(1).single();
-      if (data) {
-        if (data.store_name) setStoreName(data.store_name.toUpperCase());
-        if (data.logo_url) setLogoUrl(data.logo_url);
+      const [settingsRes, catsRes] = await Promise.all([
+        supabase.from("store_settings").select("store_name, logo_url").limit(1).single(),
+        supabase.from("categories").select("id, name, slug").order("name")
+      ]);
+      
+      if (settingsRes.data) {
+        if (settingsRes.data.store_name) setStoreName(settingsRes.data.store_name.toUpperCase());
+        if (settingsRes.data.logo_url) setLogoUrl(settingsRes.data.logo_url);
+      }
+      
+      if (catsRes.data) {
+        setCategories(catsRes.data);
       }
     } catch (e) {
       console.error(e);
@@ -53,9 +62,13 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex flex-1 items-center justify-center gap-8">
+          <div className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8">
             <Link href="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Inicio</Link>
-            <Link href="/#coleccion" className="text-sm font-medium text-foreground hover:text-primary transition-colors">Catálogo</Link>
+            {categories.map(cat => (
+              <Link key={cat.id} href={`/categoria/${cat.slug}`} className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                {cat.name}
+              </Link>
+            ))}
           </div>
 
           {/* Icons */}

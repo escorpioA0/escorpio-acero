@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 import { UploadCloud, X } from "lucide-react";
@@ -15,6 +15,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
+  const [categories, setCategories] = useState<any[]>([]);
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -22,6 +24,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     cost_price: initialData?.cost_price?.toString() || "",
     stock: initialData?.stock?.toString() || "10",
     image_url: initialData?.image_url || "",
+    category_id: initialData?.category_id || "",
   });
 
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
@@ -29,7 +32,16 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    const { data } = await supabase.from("categories").select("*").order("name");
+    if (data) setCategories(data);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -83,7 +95,6 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      // Create a fake event object to pass to handleImageUpload
       const fakeEvent = {
         target: { files: e.dataTransfer.files }
       } as React.ChangeEvent<HTMLInputElement>;
@@ -97,8 +108,6 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
     try {
       const baseSlug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      // If it's an update, we shouldn't necessarily change the slug unless we want to, but to avoid unique constraint on insert/update:
-      // If initialData exists, we can keep the old slug to not break URLs, or if it's new we generate a unique one.
       const slug = initialData?.slug || `${baseSlug}-${Math.random().toString(36).substring(2, 8)}`;
       
       const productPayload = {
@@ -110,6 +119,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         stock: parseInt(formData.stock),
         image_url: formData.image_url || null,
         tags: tags,
+        category_id: formData.category_id || null,
         is_active: true
       };
 
@@ -185,16 +195,32 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
         {/* Campos Básicos */}
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre del Producto</label>
-            <input 
-              required
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              type="text" 
-              className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre del Producto</label>
+              <input 
+                required
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                type="text" 
+                className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Categoría</label>
+              <select 
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleChange}
+                className="w-full border border-zinc-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary bg-white"
+              >
+                <option value="">-- Sin categoría --</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
